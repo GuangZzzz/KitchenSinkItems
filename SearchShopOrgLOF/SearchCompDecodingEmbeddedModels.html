@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decoding Embedded Models — SearchComponents</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-card: #161b22;
+    --bg-code: #1e2530;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --accent-green: #3fb950;
+    --accent-yellow: #d29922;
+    --accent-purple: #bc8cff;
+    --accent-orange: #f0883e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    padding: 48px 24px;
+  }
+
+  .page { max-width: 900px; margin: 0 auto; }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    color: var(--text-muted);
+    margin-bottom: 48px;
+    font-size: 0.95rem;
+  }
+
+  h2 {
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 48px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 32px 0 12px;
+  }
+
+  p { margin-bottom: 14px; color: var(--text); }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  code {
+    font-family: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
+    font-size: 0.875em;
+    background: var(--bg-code);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent-purple);
+  }
+
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    margin: 16px 0 24px;
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  pre .kw  { color: #ff7b72; }
+  pre .ty  { color: #ffa657; }
+  pre .st  { color: #a5d6ff; }
+  pre .cm  { color: #8b949e; }
+  pre .at  { color: #3fb950; }
+
+  .callstack {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin: 16px 0 24px;
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-size: 0.82rem;
+    line-height: 1.8;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .callstack .node  { color: #ffa657; }
+  .callstack .key   { color: #a5d6ff; }
+  .callstack .val   { color: #3fb950; }
+  .callstack .note  { color: #8b949e; font-style: italic; }
+
+  .pattern-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin: 24px 0;
+  }
+
+  .pattern-card h3 { margin-top: 0; }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
+    vertical-align: middle;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .tag-flat    { background: #1a3a2a; color: #3fb950; border: 1px solid #2d5a3d; }
+  .tag-nested  { background: #1a2a3a; color: #58a6ff; border: 1px solid #2d4a5a; }
+  .tag-private { background: #2a1a3a; color: #bc8cff; border: 1px solid #4a2d5a; }
+
+  .decision-tree {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px 28px;
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-size: 0.83rem;
+    line-height: 2;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .pitfall {
+    background: #1f1a1a;
+    border: 1px solid #5a2d2d;
+    border-left: 3px solid #f85149;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+
+  .pitfall strong { color: #f85149; display: block; margin-bottom: 6px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 0.9rem;
+  }
+
+  th {
+    background: var(--bg-card);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  td {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) td { background: #111620; }
+
+  .toc {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 28px;
+    margin-bottom: 48px;
+  }
+
+  .toc h2 { margin-top: 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); border: none; padding: 0; margin-bottom: 12px; }
+
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: var(--text); }
+  .toc a:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Decoding Embedded Models</h1>
+  <p class="subtitle">SearchComponents module — guide for engineers working with nested search component data</p>
+
+  <div class="toc">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#json-contract">The JSON Contract</a></li>
+      <li><a href="#dispatcher">The Central Dispatcher: SearchComponentType</a></li>
+      <li><a href="#patterns">Decoding Patterns</a>
+        <ol>
+          <li><a href="#pattern1">Pattern 1 — Standard top-level component</a></li>
+          <li><a href="#pattern2">Pattern 2 — Flat item arrays</a></li>
+          <li><a href="#pattern3">Pattern 3 — Nested component arrays via [SearchComponentType]</a></li>
+          <li><a href="#pattern4">Pattern 4 — Nested component object via private payload struct</a></li>
+        </ol>
+      </li>
+      <li><a href="#decision">Choosing the Right Pattern</a></li>
+      <li><a href="#pitfalls">Common Pitfalls</a></li>
+    </ol>
+  </div>
+
+
+  <!-- JSON CONTRACT -->
+  <h2 id="json-contract">The JSON Contract</h2>
+
+  <p>Every search component from the server follows the same envelope:</p>
+
+<pre>{
+  <span class="st">"type"</span>: <span class="st">"component_type"</span>,
+  <span class="st">"data"</span>: {
+    ...component-specific fields...
+  }
+}</pre>
+
+  <p><code>type</code> identifies which model to instantiate. <code>data</code> holds the actual payload. Understanding <strong>when and where that envelope is unwrapped</strong> is the key to all decoding in this module.</p>
+
+  <p>Some component payloads contain nested component objects that follow the same envelope convention — a component within a component. Knowing how to handle those nested levels is what this guide is about.</p>
+
+
+  <!-- DISPATCHER -->
+  <h2 id="dispatcher">The Central Dispatcher: SearchComponentType</h2>
+
+  <p><code>SearchComponentType</code> is the single entry point for decoding all search components. It reads <code>type</code>, selects the right model, and decodes that model from the <code>data</code> field.</p>
+
+  <div class="callstack"><span class="node">SearchComponentType.init(from decoder:)</span>
+  │
+  ├── <span class="key">container.requireV3(forKey: .type)</span>   →  <span class="val">"guided_nudges"</span>
+  │
+  └── <span class="key">container.decode(GuidedNudgesComponentModel.self, forKey: .data)</span>
+              │
+              ▼
+      <span class="node">GuidedNudgesComponentModel.init(from decoder:)</span>
+      <span class="note">decoder now points at DATA content — the type/data envelope is gone</span></div>
+
+  <p>By the time a model's <code>init(from:)</code> is called, the <code>type</code>/<code>data</code> envelope has already been consumed. <strong>The model always sees only the contents of <code>data</code>.</strong></p>
+
+  <p>This has an important consequence for testing: if you call <code>APIv3Decoder().decode(MyModel.self, from: data)</code> directly, the decoder starts at the root — and your model will look for its fields where <code>"type"</code> and <code>"data"</code> are, finding nothing. Always decode via <code>SearchComponentType.self</code> in tests to match the production dispatch path.</p>
+
+
+  <!-- PATTERNS -->
+  <h2 id="patterns">Decoding Patterns</h2>
+
+  <div class="pattern-card" id="pattern1">
+    <h3>Pattern 1 — Standard top-level component <span class="tag tag-flat">flat</span></h3>
+
+    <p>The default pattern. The component is dispatched by <code>SearchComponentType</code> and its model contains flat, primitive fields. If its <code>data</code> has an array of items, those items are also flat objects — no per-item <code>type</code>/<code>data</code> envelope.</p>
+
+    <p><strong>Example:</strong> <code>TrendingSearchesComponentModel</code></p>
+
+    <div class="callstack"><span class="node">SearchComponentType.init(from decoder:)</span>
+  │
+  ├── type  →  <span class="val">"trending_searches"</span>
+  └── <span class="key">decode(TrendingSearchesComponentModel.self, forKey: .data)</span>
+              │
+              ▼
+      <span class="node">TrendingSearchesComponentModel.init(from decoder:)</span>   <span class="note">@APIv3Model</span>
+          ├── title: <span class="ty">String</span>?          → <span class="val">"Top searches this week"</span>
+          └── trendingSearches: [<span class="ty">TrendingSearchComponentModel</span>]
+                  │
+                  └── each item is a flat object  { "title": "...", "image": "...", "url": "..." }
+                          │
+                          ▼
+                      <span class="node">TrendingSearchComponentModel.init(from decoder:)</span>   <span class="note">@APIv3Model</span>
+                          ├── title: <span class="ty">String</span>?
+                          ├── imageURL: <span class="ty">URL</span>?   <span class="at">@CustomFieldKey("image")</span>
+                          └── url: <span class="ty">URL</span>?</div>
+
+<pre><span class="at">@APIv3Model</span>
+<span class="kw">public struct</span> <span class="ty">TrendingSearchesComponentModel</span>: <span class="ty">SearchComponentModel</span>, <span class="ty">Sendable</span> {
+    <span class="at">@UserFacingField</span> <span class="kw">public var</span> title: <span class="ty">String</span>?
+    <span class="kw">public var</span> trendingSearches: [<span class="ty">TrendingSearchComponentModel</span>]
+}
+
+<span class="at">@APIv3Model</span>
+<span class="kw">public struct</span> <span class="ty">TrendingSearchComponentModel</span>: <span class="ty">SearchComponentModel</span>, <span class="ty">Sendable</span> {
+    <span class="at">@UserFacingField</span> <span class="kw">public var</span> title: <span class="ty">String</span>?
+    <span class="at">@CustomFieldKey("image")</span> <span class="kw">public let</span> imageURL: <span class="ty">URL</span>?
+    <span class="kw">public let</span> url: <span class="ty">URL</span>?
+}</pre>
+
+    <p><strong>Use this when:</strong> array items are plain JSON objects with no <code>type</code>/<code>data</code> wrapper.</p>
+  </div>
+
+
+  <div class="pattern-card" id="pattern2">
+    <h3>Pattern 2 — Flat item arrays <span class="tag tag-flat">flat</span></h3>
+
+    <p>A variant of Pattern 1 for models that are purely a list of flat items with no title or other wrapper fields. Structure is identical; called out separately because it maps 1-to-1 with a list-style component.</p>
+
+    <p><strong>Example:</strong> <code>RecentSearchListComponentModel</code></p>
+
+<pre><span class="at">@APIv3Model</span>
+<span class="kw">public struct</span> <span class="ty">RecentSearchListComponentModel</span>: <span class="ty">SearchComponentModel</span>, <span class="ty">Sendable</span> {
+    <span class="kw">public var</span> recentSearches: [<span class="ty">RecentSearchListItemModel</span>]
+}
+
+<span class="at">@APIv3Model</span>
+<span class="kw">public struct</span> <span class="ty">RecentSearchListItemModel</span>: <span class="ty">Sendable</span> {
+    <span class="at">@UserFacingField</span> <span class="kw">public var</span> query: <span class="ty">String</span>?
+    <span class="kw">public var</span> imageUrl: <span class="ty">String</span>?
+}</pre>
+  </div>
+
+
+  <div class="pattern-card" id="pattern3">
+    <h3>Pattern 3 — Nested component arrays via <code>[SearchComponentType]</code> <span class="tag tag-nested">nested</span></h3>
+
+    <p>Use when array items are themselves full search components — each with their own <code>type</code>/<code>data</code> envelope. Declaring the array as <code>[SearchComponentType]</code> lets the dispatcher handle each element automatically, exactly as it would for a top-level component.</p>
+
+    <p><strong>Example:</strong> <code>BoxComponentModel.components</code>, <code>GuidedNudgesComponentModel.nudges</code></p>
+
+    <div class="callstack"><span class="node">SearchComponentType.init(from decoder:)</span>
+  │
+  ├── type  →  <span class="val">"guided_nudges"</span>
+  └── <span class="key">decode(GuidedNudgesComponentModel.self, forKey: .data)</span>
+              │
+              ▼
+      <span class="node">GuidedNudgesComponentModel.init(from decoder:)</span>   <span class="note">@APIv3Model</span>
+          └── nudges: [<span class="ty">SearchComponentType</span>]
+                  │
+                  └── for each element: { "type": "guided_nudge", "data": { ... } }
+                              │
+                              ▼
+                      <span class="node">SearchComponentType.init(from decoder:)</span>   <span class="note">runs again per element</span>
+                          │
+                          ├── type  →  <span class="val">"guided_nudge"</span>
+                          └── <span class="key">decode(GuidedNudgeComponentModel.self, forKey: .data)</span>
+                                      │
+                                      ▼
+                              <span class="node">GuidedNudgeComponentModel.init(from decoder:)</span>   <span class="note">@APIv3Model</span>
+                                  ├── title: <span class="ty">String</span>?   <span class="at">@CustomFieldKey("text")</span>
+                                  ├── images: [<span class="ty">NudgeImage</span>]
+                                  └── action: <span class="ty">NudgeAction</span>?</div>
+
+<pre><span class="at">@APIv3Model</span>
+<span class="kw">public struct</span> <span class="ty">GuidedNudgesComponentModel</span>: <span class="ty">SearchComponentModel</span>, <span class="ty">Sendable</span> {
+    <span class="kw">public var</span> nudges: [<span class="ty">SearchComponentType</span>]   <span class="cm">// dispatcher handles each element</span>
+}</pre>
+
+    <p>To access the typed model from a <code>SearchComponentType</code> element at the call site:</p>
+
+<pre><span class="kw">guard case</span> .guidedNudge(<span class="kw">let</span> component) = nudge <span class="kw">else</span> { <span class="kw">return</span> }
+<span class="kw">let</span> model: <span class="ty">GuidedNudgeComponentModel</span> = component.model</pre>
+
+    <p><strong>Use this when:</strong> each array element has its own <code>type</code>/<code>data</code> envelope and is already a registered <code>SearchComponentType</code> case.</p>
+  </div>
+
+
+  <div class="pattern-card" id="pattern4">
+    <h3>Pattern 4 — Nested component object via private payload struct <span class="tag tag-private">private</span></h3>
+
+    <p>Use when a single field in <code>data</code> is itself a component-style object (<code>type</code>/<code>data</code> envelope), but you only need one or two primitive values from it — and you do not want to expose <code>SearchComponentType</code> in the public model API. A small private <code>@APIv3Model</code> struct mirrors the JSON shape and extracts what is needed.</p>
+
+    <p><strong>Example:</strong> <code>GuidedNudgesComponentModel.title</code></p>
+
+    <p>The JSON for the title field inside <code>guided_nudges.data</code>:</p>
+
+<pre>{
+  <span class="st">"title"</span>: {
+    <span class="st">"type"</span>: <span class="st">"section_title"</span>,
+    <span class="st">"data"</span>: {
+      <span class="st">"text"</span>: <span class="st">"Related searches"</span>
+    }
+  }
+}</pre>
+
+    <div class="callstack"><span class="node">GuidedNudgesComponentModel.init(from decoder:)</span>   <span class="note">@APIv3Model</span>
+  │
+  └── titlePayload: <span class="ty">TitlePayload</span>?   <span class="at">@CustomFieldKey("title")</span>
+          │   decodes from { "type": "section_title", "data": { "text": "..." } }
+          │   "type" key is ignored — not a declared property
+          ▼
+      <span class="node">TitlePayload.init(from decoder:)</span>   <span class="note">@APIv3Model  (private)</span>
+          └── data: <span class="ty">TitleData</span>
+                  │   decodes from { "text": "Related searches" }
+                  ▼
+              <span class="node">TitleData.init(from decoder:)</span>   <span class="note">@APIv3Model  (private)</span>
+                  └── text: <span class="ty">String</span>?   <span class="at">@UserFacingField</span>   →  <span class="val">"Related searches"</span></div>
+
+    <p>The public surface is a plain <code>String?</code> computed in an extension. The payload structs are a private implementation detail.</p>
+
+<pre><span class="at">@APIv3Model</span>
+<span class="kw">public struct</span> <span class="ty">GuidedNudgesComponentModel</span>: <span class="ty">SearchComponentModel</span>, <span class="ty">Sendable</span> {
+    <span class="at">@CustomFieldKey("title")</span> <span class="kw">private var</span> titlePayload: <span class="ty">TitlePayload</span>?
+    <span class="kw">public var</span> nudges: [<span class="ty">SearchComponentType</span>]
+
+    <span class="kw">public init</span>(title: <span class="ty">String</span>?, nudges: [<span class="ty">SearchComponentType</span>]) {
+        self.titlePayload = title.map { <span class="ty">TitlePayload</span>(data: <span class="ty">TitleData</span>(text: $0)) }
+        self.nudges = nudges
+    }
+}
+
+<span class="kw">extension</span> <span class="ty">GuidedNudgesComponentModel</span> {
+    <span class="kw">public var</span> title: <span class="ty">String</span>? { titlePayload?.data.text }
+}
+
+<span class="kw">private extension</span> <span class="ty">GuidedNudgesComponentModel</span> {
+    <span class="at">@APIv3Model</span>
+    <span class="kw">struct</span> <span class="ty">TitlePayload</span> {
+        <span class="kw">let</span> data: <span class="ty">TitleData</span>
+    }
+
+    <span class="at">@APIv3Model</span>
+    <span class="kw">struct</span> <span class="ty">TitleData</span> {
+        <span class="at">@UserFacingField</span> <span class="kw">let</span> text: <span class="ty">String</span>?
+    }
+}</pre>
+
+    <p><strong>Use this when:</strong> a field in <code>data</code> is a <code>type</code>/<code>data</code>-wrapped object, but only one or two primitives are needed from it. Keeps the public model API clean without pulling in the full component type.</p>
+  </div>
+
+
+  <!-- DECISION -->
+  <h2 id="decision">Choosing the Right Pattern</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Situation</th>
+        <th>Pattern</th>
+        <th>Key type</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Top-level component, all fields are primitives or flat structs</td>
+        <td>Pattern 1</td>
+        <td><code>@APIv3Model</code> on both container and item</td>
+      </tr>
+      <tr>
+        <td>Array of flat items (no per-item <code>type</code>/<code>data</code> wrapper)</td>
+        <td>Pattern 1 / 2</td>
+        <td><code>[FlatItemModel]</code> with <code>@APIv3Model</code></td>
+      </tr>
+      <tr>
+        <td>Array where each item has its own <code>type</code>/<code>data</code> envelope</td>
+        <td>Pattern 3</td>
+        <td><code>[SearchComponentType]</code></td>
+      </tr>
+      <tr>
+        <td>Single field that is a <code>type</code>/<code>data</code> component object, only need a primitive from it</td>
+        <td>Pattern 4</td>
+        <td>Private <code>@APIv3Model</code> payload struct + computed property</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="decision-tree"><span class="kw">Is the field an array?</span>
+  ├── Items are flat JSON objects (no type/data per item)?
+  │       └── Use Pattern 1 — [FlatItemModel] with @APIv3Model
+  │
+  └── Each item has a type/data envelope?
+          └── Use Pattern 3 — [SearchComponentType]
+
+<span class="kw">Is the field a single nested component object?</span>
+  ├── You need the full component model exposed publicly?
+  │       └── SearchComponentType? with @CustomFieldKey
+  │
+  └── You only need one or two primitive values from it?
+          └── Use Pattern 4 — private payload struct + computed property</div>
+
+
+  <!-- PITFALLS -->
+  <h2 id="pitfalls">Common Pitfalls</h2>
+
+  <div class="pitfall">
+    <strong>Computed properties in the struct body</strong>
+    The <code>@APIv3Model</code> macro processes every <code>var</code> declared in the struct body and generates a decode assignment for each one. A read-only computed property has no setter, so that assignment fails to compile. Move computed properties to an extension.
+  </div>
+
+<pre><span class="cm">// ✗ Fails to compile</span>
+<span class="at">@APIv3Model</span>
+<span class="kw">struct</span> <span class="ty">MyModel</span> {
+    <span class="kw">var</span> action: <span class="ty">NudgeAction</span>?
+    <span class="kw">var</span> actionURL: <span class="ty">String</span>? { action?.url }   <span class="cm">// macro generates: actionURL = container.decodeV3(...)</span>
+}
+
+<span class="cm">// ✓ Correct</span>
+<span class="at">@APIv3Model</span>
+<span class="kw">struct</span> <span class="ty">MyModel</span> {
+    <span class="kw">var</span> action: <span class="ty">NudgeAction</span>?
+}
+
+<span class="kw">extension</span> <span class="ty">MyModel</span> {
+    <span class="kw">var</span> actionURL: <span class="ty">String</span>? { action?.url }
+}</pre>
+
+  <div class="pitfall">
+    <strong>Decoding at the wrong JSON level in tests</strong>
+    Calling <code>APIv3Decoder().decode(MyModel.self, from: data)</code> directly puts the decoder at the JSON root — the model sees <code>"type"</code> and <code>"data"</code>, not its own fields. Always decode via <code>SearchComponentType.self</code> to match the production dispatch path.
+  </div>
+
+<pre><span class="cm">// ✗ Decoder at root — all fields decode as nil or empty</span>
+<span class="kw">let</span> model = <span class="kw">try</span> <span class="ty">APIv3Decoder</span>().decode(<span class="ty">GuidedNudgesComponentModel</span>.self, from: data)
+
+<span class="cm">// ✓ Correct — mirrors production dispatch</span>
+<span class="kw">let</span> component = <span class="kw">try</span> <span class="ty">APIv3Decoder</span>().decode(<span class="ty">SearchComponentType</span>.self, from: data)
+<span class="kw">guard case</span> .guidedNudges(<span class="kw">let</span> c) = component <span class="kw">else</span> {
+    <span class="kw">throw</span> <span class="ty">TestError</span>(<span class="st">"Expected guidedNudges"</span>)
+}
+<span class="kw">let</span> model = c.model</pre>
+
+  <div class="pitfall">
+    <strong>Missing @CustomFieldKey when JSON key differs from Swift name</strong>
+    <code>@APIv3Model</code> converts camelCase to snake_case automatically. Any other mismatch requires <code>@CustomFieldKey</code> explicitly.
+  </div>
+
+<pre><span class="at">@CustomFieldKey("text")</span>   <span class="at">@UserFacingField</span> <span class="kw">public var</span> title: <span class="ty">String</span>?  <span class="cm">// JSON key: "text"</span>
+<span class="at">@CustomFieldKey("image")</span>  <span class="kw">public let</span> imageURL: <span class="ty">URL</span>?                    <span class="cm">// JSON key: "image"</span>
+<span class="at">@CustomFieldKey("title")</span>  <span class="kw">private var</span> titlePayload: <span class="ty">TitlePayload</span>?      <span class="cm">// JSON key: "title"</span></pre>
+
+</div>
+</body>
+</html>
