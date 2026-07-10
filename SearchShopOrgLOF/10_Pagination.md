@@ -142,3 +142,18 @@ Copy-adapt `ShopHomeSearchViewModel` + `ShopHomeSearchRepository` as the templat
 - If yes — a dedicated "Shops" section that loads more shops as the user scrolls, decoupled from listing results → **Scenario B**, new pagination stack required
 
 This is the question to resolve with the API team before scoping pagination work.
+
+---
+
+## Update — 2026-07-09
+
+**Decision: Scenario A confirmed.**
+
+API team confirmed shop results will be delivered through the existing search stream.
+
+Two additional constraints clarified by product:
+
+- **Shops-only results** — the response contains only shop components on this surface, no mixed listing cards. The `SearchComponentType` `ForEach` dispatch will only encounter shop-type components.
+- **Sufficient result volume** — enough shops exist in the result set that exhausting pagination is not a concern.
+
+With these in place the previously noted risks are resolved. Server-controlled ordering is acceptable because there are no mixed component types to interleave with. Client pagination work is **zero** — the existing stack handles everything unchanged.
