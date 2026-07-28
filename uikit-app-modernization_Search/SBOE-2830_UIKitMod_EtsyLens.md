@@ -30,4 +30,4 @@ The captured image is centered and fully framed (not shifted or over-cropped), t
 
 ## Things to beaware
 
-The app will experience crush from time to ti. Due to older architecture context regarding to concurrency among actor model and AVfoundation. Our team is aware of it.
+The app will experience crush at certain time in the runloop. Due to older architecture context regarding to concurrency among actor model and AVfoundation. Our team is aware of it. https://etsy.atlassian.net/browse/SBOE-2496
