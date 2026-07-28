@@ -27,3 +27,7 @@
 ## Things to confirm
 
 The captured image is centered and fully framed (not shifted or over-cropped), the image fills the area without stretching or black bars, and the flow completes smoothly.
+
+## Things to beaware
+
+The app will experience crush from time to ti. Due to older architecture context regarding to concurrency among actor model and AVfoundation. Our team is aware of it.
