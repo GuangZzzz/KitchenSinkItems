@@ -1,11 +1,15 @@
 # VisualSearchAnchorListingCard — QA Steps (UIKit Modernization)
 
 - **Branch:** `UIkitMod/UIScreen/SearchDiscoveryComponentView`
-- **PR:** *(pending)*
+- **PR:** https://github.com/etsy/EtsyApp/pull/35964
 
-**What changed:** `centerOffset` now uses the card's measured container width instead of `UIScreen.main.bounds.width`.
+**change log:**  `centerOffset` is caculated from its container width instead of `UIScreen.main.bounds.width`.
 
-**Where:** Search → camera icon → take or pick a photo → anchor card loads at the top of results.
+
+UI flow: anchor card loads at the top of screen with animation slide from left to right and text blur to clear.
+
+Search → camera icon → take or pick a photo -^
+Tap in any listing card -> tap find similar icon -^
 
 ## Steps
 
@@ -13,9 +17,10 @@
    - [ ] Listing image animates from the horizontal center of the card to its resting position on the left.
    - [ ] Title, price, and rating fade in after the slide.
 
-2. Visual search on iPad in Split View (~50% width).
+2. Visual search on iPad.
    - [ ] Image starts centered within the panel.
-   - [ ] Animation lands without overshooting or clipping.
+   - [ ] Animation lands.
 
 3. Tap the anchor card after it settles.
    - [ ] Navigates to the listing detail page.
+  
