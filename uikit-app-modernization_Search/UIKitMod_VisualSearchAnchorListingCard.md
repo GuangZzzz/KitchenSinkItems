@@ -11,6 +11,8 @@ UI flow: anchor card loads at the top of screen with animation slide from left t
 Search → camera icon → take or pick a photo -^
 Tap in any listing card -> tap find similar icon -^
 
+The area we want to do more testing is resizing while animation, cycle back with design team for this interaction. 
+
 ## Steps
 
 1. Visual search on iPhone (single window).
