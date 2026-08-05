@@ -31,3 +31,25 @@ The captured image is centered and fully framed (not shifted or over-cropped), t
 ## Things to beaware
 
 The app will experience crush at certain time in the runloop. Due to older architecture context regarding to concurrency among actor model and AVfoundation. Our team is aware of it. https://etsy.atlassian.net/browse/SBOE-2496
+
+---
+
+# Visual Search coordinateSpace Modernization — QA Steps
+
+- **Branch:** `EtsyLensViewController+Navigation`
+- **PR:** https://github.com/etsy/EtsyApp/pull/36106
+
+**What changed:** `UIScreen.main.coordinateSpace` replaced with `window.windowScene?.screen.coordinateSpace` in four visual search view controllers. The listing zoom transition now uses the window's scene screen rather than the global main screen.
+
+**Where:** Search → camera icon → take or pick a photo → tap a listing from results.
+
+## Steps
+
+1. Visual search on iPhone (single window) — tap a listing from results.
+   - [ ] Zoom transition animation lands correctly on the listing detail page.
+
+2. Visual search on iPad in Split View (~50% width) — tap a listing.
+   - [ ] Transition animation is scoped to the panel, not the full screen.
+
+3. Tap the anchor card after it settles.
+   - [ ] Navigates to the listing detail page.
